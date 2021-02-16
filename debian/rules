@@ -1,0 +1,52 @@
+#!/usr/bin/make -f
+
+# See debhelper(7) (uncomment to enable)
+# output every command that modifies files on the build system.
+export DH_VERBOSE=1
+export DH_OPTIONS=-v
+
+VERSION=2.6.6
+BUILDDIR=$(CURDIR)/debian/build
+VIRTUAL_ENV=$(CURDIR)/debian/build/.venv
+INSTALLDIR=$(CURDIR)/debian/netbox
+SETUP_DIR=/opt/netbox-$(VERSION)
+
+clean:
+	echo "Stage Clean"
+	dh_clean
+	rm -rf $(BUILDDIR)
+
+virtual_env:
+	mkdir $(BUILDDIR)
+	virtualenv --always-copy -p python3 $(BUILDDIR)/.venv
+	PATH="$(VIRTUAL_ENV)/bin:$(PATH)" VIRTUAL_ENV="$(VIRTUAL_ENV)" pip -V 
+	PATH="$(VIRTUAL_ENV)/bin:$(PATH)" VIRTUAL_ENV="$(VIRTUAL_ENV)" pip install -r $(CURDIR)/requirements.txt
+	$(CURDIR)/debian/clean_venv.sh
+
+build: virtual_env
+	echo "Stage Build"
+	dh_testdir
+	dh_prep
+	cp -rav $(CURDIR)/netbox $(BUILDDIR)/netbox
+	cp -rav $(CURDIR)/netbox/netbox/configuration.example.py $(BUILDDIR)/netbox/netbox/configuration.py
+	sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = '1234567890abcdefghijklmnop'/g" $(BUILDDIR)/netbox/netbox/configuration.py
+	cd $(BUILDDIR)/netbox && pwd && PATH="$(VIRTUAL_ENV)/bin:$(PATH)" VIRTUAL_ENV="$(VIRTUAL_ENV)" python manage.py collectstatic --no-input
+	rm -f $(BUILDDIR)/netbox/netbox/configuration.py
+
+install:
+	echo "Stage install"
+	dh_testdir
+	dh_testroot
+	dh_prep
+	dh_installdirs
+	dh_install
+	mkdir -p $(INSTALLDIR)$(SETUP_DIR)
+	cp -rav $(BUILDDIR)/netbox $(INSTALLDIR)$(SETUP_DIR)/netbox
+	cp -rav $(VIRTUAL_ENV) $(INSTALLDIR)$(SETUP_DIR)/.venv
+
+binary: install
+	dh binary
+
+%:
+	echo "Stage $@"
+	dh $@

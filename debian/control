@@ -1,0 +1,15 @@
+Source: netbox
+Priority: optional
+Section: admin
+Maintainer: Alexandr Belyanskiy <a.belyanskiy@hh.ru>
+Build-Depends: debhelper (>= 9)
+Standards-Version: 3.9.7
+
+Package: netbox
+Architecture: all
+Depends: ${misc:Depends}
+Description: netbox python django web-application
+  NetBox is an IP address management (IPAM) and data center infrastructure management (DCIM) tool. Initially conceived by the network engineering team at DigitalOcean, NetBox was developed specifically to address the needs of network and infrastructure engineers.
+  NetBox runs as a web application atop the Django Python framework with a PostgreSQL database. For a complete list of requirements, see requirements.txt. The code is available on GitHub.
+  The complete documentation for NetBox can be found at Read the Docs.
+
